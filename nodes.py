@@ -61,7 +61,6 @@ class StringLiteral(Node):
     """
 
     def __init__(self, value):
-        print("Reached StringLiteral")
         self.value = str(value)
         self.value = self.value[1:len(self.value) - 1]
 
@@ -127,7 +126,6 @@ class Assign(Node):
     """
 
     def __init__(self, left, right):
-        print("Reached Assign node")
         self.left = left
         self.right = right
 
@@ -144,19 +142,19 @@ class Block(Node):
     A node representing the block statement.
     """
 
-    def __init__(self, s1, s2):
-        self.s1 = s1
-        self.s2 = s2
+    def __init__(self, statement1, statement2):
+        self.statement1 = statement1
+        self.statement2 = statement2
 
     def evaluate(self):
         statements = []
-        if self.s1 is not None:
-            if isinstance(self.s1, list):
-                statements.extend(self.s1)
+        if self.statement1 is not None:
+            if isinstance(self.statement1, list):
+                statements.extend(self.statement1)
             else:
-                statements.append(self.s1)
-        if self.s2 is not None:
-            statements.append(self.s2)
+                statements.append(self.statement1)
+        if self.statement2 is not None:
+            statements.append(self.statement2)
         for statement in statements:
             if statement is not None:
                 statement.execute()
@@ -224,14 +222,14 @@ class If(Node):
     """
 
     def __init__(self, expression, statement):
-        print("In Block node")
         self.expression = expression
         self.statement = statement
 
     def evaluate(self):
         if self.expression.evaluate() == 0:
             return
-        self.statement.execute()
+        else:
+            self.statement.execute()
 
     def execute(self):
         self.evaluate()
@@ -296,18 +294,18 @@ class ListIndex(Node):
     A node representing getting element at index of list.
     """
 
-    def __init__(self, left, right):
+    def __init__(self, my_list, index):
         # The nodes representing the left and right sides of this
         # operation.
-        self.left = left
-        self.right = right
+        self.list = my_list
+        self.index = index
 
     def evaluate(self):
-        left = self.left.evaluate()
-        right = self.right.evaluate()
-        if not isinstance(right, int):
+        my_list = self.list.evaluate()
+        index = self.index.evaluate()
+        if not isinstance(index, int):
             raise SemanticError()
-        return left[right]
+        return my_list[index]
 
     def execute(self):
         return self.evaluate()
@@ -330,23 +328,23 @@ class MakeList(Node):
     A node representing the creation of a list.
     """
 
-    def __init__(self, left, right):
+    def __init__(self, element1, element2):
         # The nodes representing the left and right sides of this
         # operation.
-        self.left = left
-        self.right = right
+        self.element1 = element1
+        self.element2 = element2
 
     def evaluate(self):
         l = []
-        if self.left is not None:
-            left = self.left.evaluate()
-        if self.right is not None:
-            right = self.right.evaluate()
-        if depth(left) > depth(right):
-            l.extend(left)
+        if self.element1 is not None:
+            element1 = self.element1.evaluate()
+        if self.element2 is not None:
+            element2 = self.element2.evaluate()
+        if depth(element1) > depth(element2):
+            l.extend(element1)
         else:
-            l.append(left)
-        l.append(right)
+            l.append(element1)
+        l.append(element2)
         return l
 
     def execute(self):
@@ -358,16 +356,16 @@ class MakeSingleElementList(Node):
     A node representing the creation of a list with only one element.
     """
 
-    def __init__(self, right):
+    def __init__(self, element):
         # The nodes representing the right side of this
         # operation.
-        self.right = right
+        self.element = element
 
     def evaluate(self):
         l = []
-        if self.right is not None:
-            right = self.right.evaluate()
-            l.append(right)
+        if self.element is not None:
+            element = self.element.evaluate()
+            l.append(element)
         return l
 
     def execute(self):
@@ -403,16 +401,16 @@ class Not(Node):
     A node representing boolean NOT.
     """
 
-    def __init__(self, right):
+    def __init__(self, operand):
         # The node representing the right side of this
         # operation.
-        self.right = right
+        self.operand = operand
 
     def evaluate(self):
-        right = self.right.evaluate()
-        if not isinstance(right, int):
+        operand = self.operand.evaluate()
+        if not isinstance(operand, int):
             raise SemanticError()
-        if right == 0:
+        if operand == 0:
             return 1
         else:
             return 0
@@ -454,7 +452,6 @@ class Print(Node):
     """
 
     def __init__(self, expression):
-        print("Reached Print")
         self.expression = expression
 
     def execute(self):
@@ -466,18 +463,18 @@ class StringIndex(Node):
     A node representing getting character at index of string.
     """
 
-    def __init__(self, left, right):
+    def __init__(self, string, index):
         # The nodes representing the left and right sides of this
         # operation.
-        self.left = left
-        self.right = right
+        self.string = string
+        self.index = index
 
     def evaluate(self):
-        left = self.left.evaluate()
-        right = self.right.evaluate()
-        if not (isinstance(left, str) and isinstance(right, int)):
+        string = self.string.evaluate()
+        index = self.index.evaluate()
+        if not (isinstance(string, str) and isinstance(index, int)):
             raise SemanticError()
-        return left[right]
+        return string[index]
 
     def execute(self):
         return self.evaluate()
@@ -597,10 +594,10 @@ class Xor(Node):
         return self.evaluate()
 
 
-# -------------------------------- NEEDS WORK --------------------------------
+# ----------------------------------------------- NEEDS WORK -----------------------------------------------
 # TODO: Better exception messages
-# TODO: Update __init__ methods to have better named parameters
-# TODO: code reorganization
+# TODO: See if there's a less hacky way to implement lists, hopefully support lists of lists with different depths
+# TODO: code reorganization, comment cleanup, and better comments/docstrings
 # TODO: work on the following 2 classes
 
 class FunctionBody(Node):
@@ -630,14 +627,14 @@ class IfElse(Node):
 
     def __init__(self, condition, if_body, else_body):
         self.condition = condition
-        self.ifBody = if_body
-        self.elseBody = else_body
+        self.if_body = if_body
+        self.else_body = else_body
 
     def evaluate(self):
-        if self.condition.evaluate() == 0:
-            self.elseBody.execute()
+        if self.condition.evaluate() == 1:
+            self.if_body.execute()
         else:
-            self.ifBody.execute()
+            self.else_body.execute()
 
     def execute(self):
         self.evaluate()
