@@ -1,17 +1,9 @@
 from globals import global_scope, function_name_to_body
 
 
-class MySyntaxError(Exception):
-    """
-    This is the class of the exception that is raised when a syntax error
-    occurs.
-    """
-
-
 class SemanticError(Exception):
     """
-    This is the class of the exception that is raised when a semantic error
-    occurs.
+    This is the class of the exception that is raised when a semantic error occurs.
     """
 
 
@@ -86,7 +78,7 @@ class Add(Node):
         left = self.left.evaluate()
         right = self.right.evaluate()
         if not ((isinstance(left, int) and isinstance(right, int)) or (isinstance(left, str) and isinstance(right, str))):
-            raise SemanticError()
+            raise SemanticError("addition operands must both be integers or both be strings")
         return left + right
 
     def execute(self):
@@ -107,10 +99,8 @@ class And(Node):
     def evaluate(self):
         left = self.left.evaluate()
         right = self.right.evaluate()
-        if not isinstance(left, int):
-            raise SemanticError()
-        if not isinstance(right, int):
-            raise SemanticError()
+        if not isinstance(left, int) or not isinstance(right, int):
+            raise SemanticError("\"and\" operands must be integers")
         if left == 0 or right == 0:
             return 0
         else:
@@ -177,12 +167,10 @@ class Divide(Node):
     def evaluate(self):
         left = self.left.evaluate()
         right = self.right.evaluate()
-        if not isinstance(left, int):
-            raise SemanticError()
-        if not isinstance(right, int):
-            raise SemanticError()
+        if not isinstance(left, int) or not isinstance(right, int):
+            raise SemanticError("division operands must be integers")
         if right == 0:
-            raise SemanticError()
+            raise SemanticError("division by zero")
         return int(left / right)
 
     def execute(self):
@@ -203,10 +191,8 @@ class GreaterThan(Node):
     def evaluate(self):
         left = self.left.evaluate()
         right = self.right.evaluate()
-        if not isinstance(left, int):
-            raise SemanticError()
-        if not isinstance(right, int):
-            raise SemanticError()
+        if not isinstance(left, int) or not isinstance(right, int):
+            raise SemanticError("\">\" operands must be integers")
         if left > right:
             return 1
         else:
@@ -249,10 +235,8 @@ class IsEqual(Node):
     def evaluate(self):
         left = self.left.evaluate()
         right = self.right.evaluate()
-        if not isinstance(left, int):
-            raise SemanticError()
-        if not isinstance(right, int):
-            raise SemanticError()
+        if not isinstance(left, int) or not isinstance(right, int):
+            raise SemanticError("\"==\" operands must be integers")
         if left == right:
             return 1
         else:
@@ -276,10 +260,8 @@ class LessThan(Node):
     def evaluate(self):
         left = self.left.evaluate()
         right = self.right.evaluate()
-        if not isinstance(left, int):
-            raise SemanticError()
-        if not isinstance(right, int):
-            raise SemanticError()
+        if not isinstance(left, int) or not isinstance(right, int):
+            raise SemanticError("\"<\" operands must be integers")
         if left < right:
             return 1
         else:
@@ -304,7 +286,7 @@ class ListIndex(Node):
         my_list = self.list.evaluate()
         index = self.index.evaluate()
         if not isinstance(index, int):
-            raise SemanticError()
+            raise SemanticError("lists must be indexed by integers")
         return my_list[index]
 
     def execute(self):
@@ -386,10 +368,8 @@ class Multiply(Node):
     def evaluate(self):
         left = self.left.evaluate()
         right = self.right.evaluate()
-        if not isinstance(left, int):
-            raise SemanticError()
-        if not isinstance(right, int):
-            raise SemanticError()
+        if not isinstance(left, int) or not isinstance(right, int):
+            raise SemanticError("multiplication operands must be integers")
         return left * right
 
     def execute(self):
@@ -409,7 +389,7 @@ class Not(Node):
     def evaluate(self):
         operand = self.operand.evaluate()
         if not isinstance(operand, int):
-            raise SemanticError()
+            raise SemanticError("\"not\" operand must be an integer")
         if operand == 0:
             return 1
         else:
@@ -433,10 +413,8 @@ class Or(Node):
     def evaluate(self):
         left = self.left.evaluate()
         right = self.right.evaluate()
-        if not isinstance(left, int):
-            raise SemanticError()
-        if not isinstance(right, int):
-            raise SemanticError()
+        if not isinstance(left, int) or not isinstance(right, int):
+            raise SemanticError("\"or\" operands must be integers")
         if left == 0 and right == 0:
             return 0
         else:
@@ -472,8 +450,8 @@ class StringIndex(Node):
     def evaluate(self):
         string = self.string.evaluate()
         index = self.index.evaluate()
-        if not (isinstance(string, str) and isinstance(index, int)):
-            raise SemanticError()
+        if not isinstance(index, int):
+            raise SemanticError("strings must be indexed by integers")
         return string[index]
 
     def execute(self):
@@ -494,10 +472,8 @@ class Subtract(Node):
     def evaluate(self):
         left = self.left.evaluate()
         right = self.right.evaluate()
-        if not isinstance(left, int):
-            raise SemanticError()
-        if not isinstance(right, int):
-            raise SemanticError()
+        if not isinstance(left, int) or not isinstance(right, int):
+            raise SemanticError("subtraction operands must be integers")
         return left - right
 
     def execute(self):
@@ -517,7 +493,7 @@ class Variable(Node):
 
     def evaluate(self):
         if self.name not in global_scope:
-            raise SemanticError()
+            raise SemanticError("name '" + self.name + "' is not defined")
         return global_scope[self.name]
 
     def location(self):
@@ -541,9 +517,9 @@ class VarIndex(Node):
         if not isinstance(var, list):
             raise SemanticError()
         if not isinstance(index, int):
-            raise SemanticError()
-        if index >= len(var):
-            raise MySyntaxError()
+            raise SemanticError("variables must be indexed by integers")
+        if index >= len(var) and isinstance(var, list):
+            raise SemanticError("list index is out of range")
         return var[index]
 
     def execute(self):
@@ -584,21 +560,22 @@ class Xor(Node):
     def evaluate(self):
         left = self.left.evaluate()
         right = self.right.evaluate()
-        if not isinstance(left, int):
-            raise SemanticError()
-        if not isinstance(right, int):
-            raise SemanticError()
+        if not isinstance(left, int) or not isinstance(right, int):
+            raise SemanticError("\"xor\" operands must be integers")
         return left ^ right
 
     def execute(self):
         return self.evaluate()
 
 
-# ----------------------------------------------- NEEDS WORK -----------------------------------------------
-# TODO: Better exception messages
-# TODO: See if there's a less hacky way to implement lists, hopefully support lists of lists with different depths
+# ----------------------------------------------------- NEEDS WORK -----------------------------------------------------
+# TODO: Update ListIndex to throw semantic error when "list index is out of range" <-- use quotes as error msg
+# TODO: Update VarIndex to support string indexing in addition to list indexing, update error msgs as appropriate
+# TODO: Implement >= and <= functionality
 # TODO: code reorganization, comment cleanup, and better comments/docstrings
-# TODO: work on the following 2 classes
+# TODO: Find a less hacky way to implement lists and blocks, hopefully support lists of lists with different depths
+# TODO: if above TODO doesn't solve it, figure out why variable assignments don't work unless wrapped in curly brackets
+# TODO: work on the following 2 classes and implement return statements
 
 class FunctionBody(Node):
     """
@@ -642,8 +619,7 @@ class IfElse(Node):
 
 def depth(l):
     """
-    A recursive function for returning depth of nested list.
-    For example, depth([[2, 5], [3, 3]]) returns 2
+    A recursive function for returning depth of nested list. For example, depth([[2, 5], [3, 3]]) returns 2
     :param l: The list whose depth is to be evaluated
     :return: the depth of the list
     """

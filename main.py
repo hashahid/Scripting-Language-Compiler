@@ -4,8 +4,7 @@ import tpg
 from nodes import *
 
 
-# This is the TPG Parser that is responsible for turning the language into
-# an abstract syntax tree.
+# This is the TPG Parser that is responsible for turning the language into an abstract syntax tree.
 class Parser(tpg.Parser):
     """
     token int "\d+" IntLiteral;
@@ -88,20 +87,18 @@ code = f.read()
 
 try:
     node = parse(code)
-    print(repr(node))
+    # print(repr(node))
     node.execute()
 
 # If an exception is thrown, print the appropriate error.
-except (tpg.Error, MySyntaxError):
-    print("SYNTAX ERROR")
-    # Uncomment the next line to re-raise the syntax error,
-    # displaying where it occurs. Comment it for submission.
+except tpg.Error:
+    print("SyntaxError")
+    # Uncomment the next line to re-raise the TPG error, displaying where it occurs.
     # raise
 
-except SemanticError:
-    print("SEMANTIC ERROR")
-    # Uncomment the next line to re-raise the semantic error,
-    # displaying where it occurs. Comment it for submission.
+except SemanticError as err:
+    print("SemanticError:", err.args[0])
+    # Uncomment the next line to re-raise the semantic error, displaying where it occurs.
     # raise
 
 f.close()
